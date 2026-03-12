@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Block {
+  number     BigInt  @id
+  hash       String  @unique
+  parentHash String
+  timestamp  DateTime
+  txCount    Int
+
+  transactions Transaction[]
+
+  @@index([timestamp])
+}
+
+model Transaction {
+  hash        String   @id
+  blockNumber BigInt
+  fromAddress String
+  toAddress   String?
+  value       String
+  gas         String
+  status      Boolean?
+
+  block Block @relation(fields: [blockNumber], references: [number], onDelete: Restrict)
+
+  @@index([blockNumber])
+  @@index([fromAddress])
+  @@index([toAddress])
+}
+
+model ERC20Transfer {
+  id           String   @id @default(cuid())
+  txHash       String
+  logIndex     Int
+  blockNumber  BigInt
+  tokenAddress String
+  fromAddress  String
+  toAddress    String
+  amount       String
+
+  @@unique([txHash, logIndex])
+  @@index([blockNumber])
+  @@index([tokenAddress])
+  @@index([fromAddress])
+  @@index([toAddress])
+}
+
+model SyncState {
+  id              String   @id @default(cuid())
+  chainId         Int      @unique
+  lastSyncedBlock BigInt
+  updatedAt       DateTime @updatedAt
+}
