@@ -9,6 +9,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "test": "tsx src/scripts/indexBlockRange.ts",
+    "test:api": "tsx src/scripts/testApi.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
   },

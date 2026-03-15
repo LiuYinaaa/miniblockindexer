@@ -37,3 +37,18 @@ export async function insertTransactions(transactions: Transaction[]): Promise<T
     skipped: transactions.length - result.count
   };
 }
+
+export async function findTransactionByHash(hash: string): Promise<Transaction | null> {
+  return prisma.transaction.findUnique({
+    where: { hash },
+    select: {
+      hash: true,
+      blockNumber: true,
+      fromAddress: true,
+      toAddress: true,
+      value: true,
+      gas: true,
+      status: true
+    }
+  });
+}

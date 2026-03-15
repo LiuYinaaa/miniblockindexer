@@ -19,3 +19,16 @@ export async function upsertBlock(block: Block): Promise<void> {
     }
   });
 }
+
+export async function findBlockByNumber(number: bigint): Promise<Block | null> {
+  return prisma.block.findUnique({
+    where: { number },
+    select: {
+      number: true,
+      hash: true,
+      parentHash: true,
+      timestamp: true,
+      txCount: true
+    }
+  });
+}
