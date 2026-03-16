@@ -14,6 +14,7 @@ type AddressTransfersQuery = {
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
+const ADDRESS_PATTERN = '^0x[a-fA-F0-9]{40}$';
 
 function parsePositiveInteger(raw: string | undefined, fallback: number): number {
   if (raw == null) {
@@ -30,6 +31,84 @@ function parsePositiveInteger(raw: string | undefined, fallback: number): number
 export async function transferRoutes(app: FastifyInstance): Promise<void> {
   app.get<{ Params: AddressTransfersParams; Querystring: AddressTransfersQuery }>(
     '/addresses/:address/transfers',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          required: ['address'],
+          properties: {
+            address: { type: 'string', pattern: ADDRESS_PATTERN }
+          }
+        },
+        querystring: {
+          type: 'object',
+          properties: {
+            limit: { type: 'string', pattern: '^\\d+$' },
+            offset: { type: 'string', pattern: '^\\d+$' }
+          },
+          additionalProperties: false
+        },
+        response: {
+          200: {
+            type: 'object',
+            required: ['ok', 'data'],
+            properties: {
+              ok: { type: 'boolean' },
+              data: {
+                type: 'object',
+                required: ['address', 'limit', 'offset', 'total', 'items'],
+                properties: {
+                  address: { type: 'string' },
+                  limit: { type: 'number' },
+                  offset: { type: 'number' },
+                  total: { type: 'number' },
+                  items: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      required: [
+                        'txHash',
+                        'logIndex',
+                        'blockNumber',
+                        'tokenAddress',
+                        'fromAddress',
+                        'toAddress',
+                        'amount'
+                      ],
+                      properties: {
+                        txHash: { type: 'string' },
+                        logIndex: { type: 'number' },
+                        blockNumber: { type: 'string' },
+                        tokenAddress: { type: 'string' },
+                        fromAddress: { type: 'string' },
+                        toAddress: { type: 'string' },
+                        amount: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          400: {
+            type: 'object',
+            required: ['ok', 'message'],
+            properties: {
+              ok: { type: 'boolean' },
+              message: { type: 'string' }
+            }
+          },
+          404: {
+            type: 'object',
+            required: ['ok', 'message'],
+            properties: {
+              ok: { type: 'boolean' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
+    },
     async (request, reply) => {
       let normalizedAddress: string;
       try {
